@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"starlu.be/lorcana_tracker/internal/card"
+	"github.com/ardtieboy/lorcana_tracker/internal/card"
 )
 
 func main() {
