@@ -8,6 +8,7 @@ import (
 
 	"github.com/ardtieboy/lorcana_tracker/internal/card"
 	"github.com/ardtieboy/lorcana_tracker/internal/persistence"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -17,6 +18,20 @@ func main() {
 		return
 	}
 	fmt.Println("Database initalised successfully")
+
+	router := gin.Default()
+	router.GET("/cards", getAllCards)
+
+	router.Run("localhost:8080")
+}
+
+func getAllCards(c *gin.Context) {
+	cards, err := persistence.FetchAllCardsFromDatabase()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, cards)
 }
 
 func initaliseDatabase() error {
@@ -44,7 +59,7 @@ func initaliseDatabase() error {
 	}
 
 	for _, c := range cards {
-		err := persistence.InsertCard(c.CardID, c.Artist, c.SetID, c.SetNum, c.SetName, c.Color, c.Image, c.Cost, c.Inkable, c.Name, c.Type, c.Rarity, c.FlavorText, c.CardNum, c.BodyText, c.MarketPriceInEuro)
+		err := persistence.InsertCard(*c)
 		if err != nil {
 			fmt.Println("Error inserting c into the database:", err)
 			return err
@@ -52,7 +67,7 @@ func initaliseDatabase() error {
 	}
 
 	for _, set := range sets {
-		err := persistence.InsertCardSet(set.SetID, set.SetNum, set.SetName)
+		err := persistence.InsertCardSet(set)
 		if err != nil {
 			fmt.Println("Error inserting set into the database:", err)
 			return err
