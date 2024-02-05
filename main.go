@@ -11,30 +11,43 @@ import (
 )
 
 func main() {
+	err := initaliseDatabase()
+	if err != nil {
+		fmt.Println("Error initalising the database:", err)
+		return
+	}
+	fmt.Println("Database initalised successfully")
+}
+
+func initaliseDatabase() error {
 
 	fmt.Println("Fetching cards from API")
 	cards, err := fetchAllCardsFromApi()
 	if err != nil {
 		fmt.Println("Error fetching cards from API:", err)
-		return
+		return err
 	}
 
 	sets, err := extractSetsFromCards(cards)
 	if err != nil {
 		fmt.Println("Error extracting sets from cards:", err)
-		return
+		return err
 	}
 
 	fmt.Println("Size of cards:", len(cards))
 	fmt.Println("Size of sets:", len(sets))
 
-	persistence.CreateDatabase()
+	err = persistence.CreateDatabase()
+	if err != nil {
+		fmt.Println("Error creating the database:", err)
+		return err
+	}
 
-	for _, card := range cards {
-		err := persistence.InsertCard(card.CardID, card.Artist, card.SetID, card.SetNum, card.SetName, card.Color, card.Image, card.Cost, card.Inkable, card.Name, card.Type, card.Rarity, card.FlavorText, card.CardNum, card.BodyText, card.MarketPriceInEuro)
+	for _, c := range cards {
+		err := persistence.InsertCard(c.CardID, c.Artist, c.SetID, c.SetNum, c.SetName, c.Color, c.Image, c.Cost, c.Inkable, c.Name, c.Type, c.Rarity, c.FlavorText, c.CardNum, c.BodyText, c.MarketPriceInEuro)
 		if err != nil {
-			fmt.Println("Error inserting card into the database:", err)
-			return
+			fmt.Println("Error inserting c into the database:", err)
+			return err
 		}
 	}
 
@@ -42,11 +55,12 @@ func main() {
 		err := persistence.InsertCardSet(set.SetID, set.SetNum, set.SetName)
 		if err != nil {
 			fmt.Println("Error inserting set into the database:", err)
-			return
+			return err
 		}
 	}
 
-	// printCardsJSON(cards)
+	return nil
+
 }
 
 func extractSetsFromCards(cards []*card.Card) ([]card.CardSet, error) {
