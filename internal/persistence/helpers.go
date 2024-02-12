@@ -58,5 +58,5 @@ func (c *CardDatabaseView) toCardView() card.CardView {
 		CardID: c.CardID, Artist: c.Artist, SetID: c.SetID, SetNum: c.SetNum, SetName: c.SetName, Color: c.Color, Image: c.Image,
 		Cost: c.Cost, Inkable: c.Inkable, Name: c.Name, Type: c.Type, Rarity: c.Rarity, FlavorText: c.FlavorText, CardNum: c.CardNum,
 		BodyText: c.BodyText, MarketPriceInEuro: c.MarketPriceInEuro,
-		OwnedNormalCopies: ownedFoilCopies, OwnedFoilCopies: ownedFoilCopies, WhishList: whishList}
+		OwnedNormalCopies: ownedNormalCopies, OwnedFoilCopies: ownedFoilCopies, WhishList: whishList}
 }
