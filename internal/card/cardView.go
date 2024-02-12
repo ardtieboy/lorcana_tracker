@@ -1,8 +1,6 @@
 package card
 
-import "fmt"
-
-type Card struct {
+type CardView struct {
 	CardID            string `json:"id"`
 	Artist            string `json:"artist"`
 	SetID             string `json:"set_id"`
@@ -18,9 +16,8 @@ type Card struct {
 	FlavorText        string `json:"flavor_text"`
 	CardNum           int    `json:"card_num"`
 	BodyText          string `json:"body_text"`
-	MarketPriceInEuro int    `json:"market_price_in_euro"` //probably should end up in another table
-}
-
-func (c *Card) PopulateID() {
-	c.CardID = fmt.Sprintf("%s-%d", c.SetID, c.CardNum)
+	MarketPriceInEuro int    `json:"market_price_in_euro"`
+	OwnedNormalCopies int    `json:"owned_normal_copies"`
+	OwnedFoilCopies   int    `json:"owned_foil_copies"`
+	WhishList         bool   `json:"whish_list"`
 }

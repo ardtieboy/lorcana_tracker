@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/ardtieboy/lorcana_tracker/internal/card"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -24,18 +25,18 @@ func CreateDatabase() error {
 		return err
 	}
 
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS cards_in_collection (card_id TEXT PRIMARY KEY, owned_normal_copies INTEGER, owned_foil_copies INTEGER, whitelist BOOLEAN)")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS cards_in_collection (card_id TEXT PRIMARY KEY, owned_normal_copies INTEGER, owned_foil_copies INTEGER, whishlist BOOLEAN)")
 	if err != nil {
 		return err
 	}
+
+	// create another table with the prices inside
 
 	log.Println("Database and tables created successfully")
 	return nil
 }
 
-//card.CardID, card.Artist, card.SetID, card.SetNum, card.SetName, card.Color, card.Image, card.Cost, card.Inkable, card.Name, card.CardType, card.Rarity, card.FlavorText, card.CardNum, card.BodyText, card.MarketPriceEuro
-
-func InsertCard(cardID string, artist string, setID string, setNum int, setName string, color string, image string, cost int, inkable bool, name string, cardType string, rarity string, flavorText string, cardNum int, bodyText string, marketPriceEuro int) error {
+func InsertCard(c card.Card) error {
 	db, err := sql.Open("sqlite3", "lorcana.db")
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func InsertCard(cardID string, artist string, setID string, setNum int, setName 
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(cardID, artist, setID, setNum, setName, color, image, cost, inkable, name, cardType, rarity, flavorText, cardNum, bodyText, marketPriceEuro)
+	_, err = stmt.Exec(c.CardID, c.Artist, c.SetID, c.SetNum, c.SetName, c.Color, c.Image, c.Cost, c.Inkable, c.Name, c.Type, c.Rarity, c.FlavorText, c.CardNum, c.BodyText, c.MarketPriceInEuro)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func InsertCard(cardID string, artist string, setID string, setNum int, setName 
 	return nil
 }
 
-func InsertCardSet(setID string, setNum int, setName string) error {
+func InsertCardSet(cs card.CardSet) error {
 	db, err := sql.Open("sqlite3", "lorcana.db")
 	if err != nil {
 		return err
@@ -70,11 +71,46 @@ func InsertCardSet(setID string, setNum int, setName string) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(setID, setNum, setName)
+	_, err = stmt.Exec(cs.SetID, cs.SetNum, cs.SetName)
 	if err != nil {
 		return err
 	}
 
 	log.Println("Card set inserted successfully")
 	return nil
+}
+
+func GetAllCards() []card.CardView {
+	db, err := sql.Open("sqlite3", "lorcana.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT cards.card_id, artist, set_id, set_num, set_name, color, image, cost, inkable,name, card_type, rarity, flavor_text, card_num, body_text, market_price_in_euro, owned_normal_copies, owned_foil_copies, whishlist from cards left join cards_in_collection on cards.card_id=cards_in_collection.card_id ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	var cards []card.CardView
+
+	for rows.Next() {
+		var view CardDatabaseView
+
+		err = rows.Scan(&view.CardID, &view.Artist, &view.SetID, &view.SetNum, &view.SetName, &view.Color, &view.Image, &view.Cost, &view.Inkable, &view.Name, &view.Type, &view.Rarity, &view.FlavorText, &view.CardNum, &view.BodyText, &view.MarketPriceInEuro, &view.OwnedNormalCopies, &view.OwnedFoilCopies, &view.WhishList)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		cards = append(cards, view.toCardView())
+
+		// Process the card data here
+	}
+	if err = rows.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return cards
+
 }
