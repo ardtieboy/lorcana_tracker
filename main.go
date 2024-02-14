@@ -6,8 +6,12 @@ import (
 )
 
 func main() {
-	if true {
-		persistence.InitialiseState()
+	// Set to true if you want to initialise the database with the card data
+	if false {
+		err := persistence.InitialiseState()
+		if err != nil {
+			panic(err)
+		}
 	}
 	controller.Start()
 }

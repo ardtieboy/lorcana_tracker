@@ -9,25 +9,28 @@ import (
 	"github.com/ardtieboy/lorcana_tracker/internal/card"
 )
 
-func InitialiseState() {
+func InitialiseState() error {
 	fmt.Println("Fetching cards from API")
 
 	cards, err := fetchAllCardsFromApi()
 	if err != nil {
-		fmt.Println("Error fetching cards from API:", err)
-		return
+		fmt.Println("Error fetching cards from API: ", err)
+		return err
 	}
 
 	sets, err := extractSetsFromCards(cards)
 	if err != nil {
 		fmt.Println("Error extracting sets from cards:", err)
-		return
+		return err
 	}
 
-	fmt.Println("Size of cards:", len(cards))
-	fmt.Println("Size of sets:", len(sets))
+	fmt.Println("Size of cards provided by the api:", len(cards))
+	fmt.Println("Size of sets provied by the api:", len(sets))
 
-	CreateDatabase()
+	CreateDatabaseIfNotExisting()
+
+	newlyInsertedCards := 0
+	newlyInsertedSets := 0
 
 	for _, c := range cards {
 		err := InsertCard(*c)
@@ -35,7 +38,9 @@ func InitialiseState() {
 			fmt.Printf("Ignoring insertion of card with ID %s because it already exists in the database.\n", c.CardID)
 		} else if err != nil {
 			fmt.Println("Error inserting card into the database:", err)
-			return
+			return err
+		} else {
+			newlyInsertedCards++
 		}
 	}
 
@@ -45,13 +50,19 @@ func InitialiseState() {
 			fmt.Printf("Ignoring insertion of set with ID %s because it already exists in the database.\n", set.SetID)
 		} else if err != nil {
 			fmt.Println("Error inserting set into the database:", err)
-			return
+			return err
+		} else {
+			newlyInsertedSets++
 		}
 	}
 
 	fmt.Println("========================")
 	fmt.Println("========================")
+	fmt.Printf("Inserted %d new cards into the database\n", newlyInsertedCards)
+	fmt.Printf("Inserted %d new sets into the database\n", newlyInsertedSets)
 	fmt.Println("========================")
+	fmt.Println("========================")
+	return nil
 }
 
 func extractSetsFromCards(cards []*card.Card) ([]card.CardSet, error) {
@@ -92,18 +103,9 @@ func fetchAllCardsFromApi() ([]*card.Card, error) {
 		return nil, err
 	}
 
+	// Create the card IDs here, because the API does not provide them
 	for _, card := range cards {
 		card.PopulateID()
 	}
 	return cards, nil
-}
-
-func printCardsJSON(cards []*card.Card) {
-	jsonData, err := json.MarshalIndent(cards, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshaling cards to JSON:", err)
-		return
-	}
-
-	fmt.Println(string(jsonData))
 }

@@ -8,7 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func CreateDatabase() error {
+func CreateDatabaseIfNotExisting() error {
 	db, err := sql.Open("sqlite3", "lorcana.db")
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func CreateDatabase() error {
 		return err
 	}
 
-	// create another table with the prices inside
+	// todo: create another table with the prices inside
 
 	log.Println("Database and tables created successfully")
 	return nil
@@ -80,16 +80,16 @@ func InsertCardSet(cs card.CardSet) error {
 	return nil
 }
 
-func GetAllCards() []card.CardView {
+func GetAllCards() ([]card.CardView, error) {
 	db, err := sql.Open("sqlite3", "lorcana.db")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer db.Close()
 
 	rows, err := db.Query("SELECT cards.card_id, artist, set_id, set_num, set_name, color, image, cost, inkable,name, card_type, rarity, flavor_text, card_num, body_text, market_price_in_euro, owned_normal_copies, owned_foil_copies, whishlist from cards left join cards_in_collection on cards.card_id=cards_in_collection.card_id ")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -100,17 +100,68 @@ func GetAllCards() []card.CardView {
 
 		err = rows.Scan(&view.CardID, &view.Artist, &view.SetID, &view.SetNum, &view.SetName, &view.Color, &view.Image, &view.Cost, &view.Inkable, &view.Name, &view.Type, &view.Rarity, &view.FlavorText, &view.CardNum, &view.BodyText, &view.MarketPriceInEuro, &view.OwnedNormalCopies, &view.OwnedFoilCopies, &view.WhishList)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
 		cards = append(cards, view.toCardView())
-
-		// Process the card data here
 	}
 	if err = rows.Err(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return cards
+	return cards, nil
+}
 
+func UpdateCardInCollection(c card.CardInCollection) (string, error) {
+	db, err := sql.Open("sqlite3", "lorcana.db")
+	if err != nil {
+		return "", err
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("INSERT INTO cards_in_collection (card_id, owned_normal_copies, owned_foil_copies, whishlist) VALUES (?, ?, ?, ?) ON CONFLICT(card_id) DO UPDATE SET owned_normal_copies=excluded.owned_normal_copies, owned_foil_copies=excluded.owned_foil_copies, whishlist=excluded.whishlist")
+	if err != nil {
+		return "", err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(c.CardID, c.OwnedNormalCopies, c.OwnedFoilCopies, c.WhishList)
+	if err != nil {
+		return "", err
+	}
+
+	log.Println("Card in collection updated successfully")
+	return c.CardID, nil
+}
+
+func GetAllSets() ([]card.CardSet, error) {
+	db, err := sql.Open("sqlite3", "lorcana.db")
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT set_id, set_num, set_name from card_sets")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var sets []card.CardSet
+
+	for rows.Next() {
+		var set card.CardSet
+
+		err = rows.Scan(&set.SetID, &set.SetNum, &set.SetName)
+		if err != nil {
+			return nil, err
+		}
+
+		sets = append(sets, set)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return sets, nil
 }
