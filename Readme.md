@@ -2,6 +2,16 @@
 
 Tool to track my lorcana collection
 
+## Start the service
+
+    go run main.go
+
+or
+
+    go run main.go --initDB true 
+
+to initialize the database
+
 ## Implemented queries with HTTP pie
 
 Get all cards

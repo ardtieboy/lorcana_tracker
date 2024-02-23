@@ -27,7 +27,8 @@ func InitialiseState() error {
 	fmt.Println("Size of cards provided by the api:", len(cards))
 	fmt.Println("Size of sets provied by the api:", len(sets))
 
-	CreateDatabaseIfNotExisting()
+	CreateGeneralDatabaseIfNotExisting()
+	CreateUserDatabaseIfNotExisting()
 
 	newlyInsertedCards := 0
 	newlyInsertedSets := 0
