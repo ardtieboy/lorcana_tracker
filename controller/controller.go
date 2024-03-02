@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/ardtieboy/lorcana_tracker/internal/card"
@@ -54,6 +55,7 @@ func GetCardById(c *gin.Context) {
 func GetCardInCollectionById(c *gin.Context) {
 	cardId := c.Param("id")
 	fetchedCard, err := persistence.GetCardInCollectionById(cardId)
+	fmt.Println("Fetched card: ", fetchedCard)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
 	} else {

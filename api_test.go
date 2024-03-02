@@ -67,12 +67,14 @@ func TestUpdateAndGetCardInCollection(t *testing.T) {
 	json.Unmarshal(w.Body.Bytes(), &initialCardInCollection)
 	assert.Equal(t, "TFC-1", initialCardInCollection.CardID)
 
-	// initalFoilCopies := initialCardInCollection.OwnedFoilCopies
+	fmt.Println("Initial card in collection: ", initialCardInCollection)
+
+	initalFoilCopies := *initialCardInCollection.OwnedFoilCopies
+	initalFoilCopies++
 
 	// Update
 	w = httptest.NewRecorder()
-	*initialCardInCollection.OwnedFoilCopies = 0
-	*initialCardInCollection.OwnedNormalCopies = 0
+	initialCardInCollection.OwnedFoilCopies = &initalFoilCopies
 	jsonData, _ := json.Marshal(initialCardInCollection)
 	println(string(jsonData))
 	body := bytes.NewReader(jsonData)
@@ -89,5 +91,18 @@ func TestUpdateAndGetCardInCollection(t *testing.T) {
 	var cardInCollection card.CardInCollection
 	json.Unmarshal(w.Body.Bytes(), &cardInCollection)
 	assert.Equal(t, "TFC-1", cardInCollection.CardID)
-	assert.Equal(t, 0, *cardInCollection.OwnedFoilCopies)
+	assert.Equal(t, initalFoilCopies, *cardInCollection.OwnedFoilCopies)
+
+	initalFoilCopies--
+
+	// Put the card back to the initial state
+	w = httptest.NewRecorder()
+	*initialCardInCollection.OwnedFoilCopies = initalFoilCopies
+	jsonData, _ = json.Marshal(initialCardInCollection)
+	println(string(jsonData))
+	body = bytes.NewReader(jsonData)
+	req, _ = http.NewRequest("PUT", "/card_in_collection", body)
+	router.ServeHTTP(w, req)
+	println(w.Body.String())
+	assert.Equal(t, 201, w.Code)
 }

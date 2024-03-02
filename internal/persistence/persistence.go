@@ -243,13 +243,14 @@ func GetCardInCollectionById(cardID string) (card.CardInCollection, error) {
 			return card.CardInCollection{}, err
 		}
 	} else {
-		return card.CardInCollection{CardID: cardID}, nil
+		ownedCopies := 0
+		whishList := false
+		return card.CardInCollection{CardID: cardID, OwnedNormalCopies: &ownedCopies, OwnedFoilCopies: &ownedCopies, WhishList: &whishList}, nil
 	}
 
 	if err = rows.Err(); err != nil {
 		return card.CardInCollection{}, err
 	}
-
 	return c, nil
 }
 
