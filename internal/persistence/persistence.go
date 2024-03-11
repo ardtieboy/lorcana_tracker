@@ -2,14 +2,62 @@ package persistence
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 
 	"github.com/ardtieboy/lorcana_tracker/internal/card"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func CreateGeneralDatabaseIfNotExisting() error {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+type DatabaseConfig struct {
+	UserDB    string
+	GeneralDB string
+}
+
+func (dbConfig DatabaseConfig) DeleteGeneralTables() error {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	_, err = db.Exec("DROP TABLE IF EXISTS cards")
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("DROP TABLE IF EXISTS card_sets")
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("DROP TABLE IF EXISTS card_prices")
+	if err != nil {
+		return err
+	}
+
+	log.Println("General Database and tables deleted successfully")
+	return nil
+}
+
+func (dbConfig DatabaseConfig) DeleteUserTables() error {
+	db, err := sql.Open("sqlite3", dbConfig.UserDB)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	_, err = db.Exec("DROP TABLE IF EXISTS cards_in_collection")
+	if err != nil {
+		return err
+	}
+
+	log.Println("User Database and tables deleted successfully")
+	return nil
+}
+
+func (dbConfig DatabaseConfig) CreateGeneralDatabaseIfNotExisting() error {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return err
 	}
@@ -36,8 +84,8 @@ func CreateGeneralDatabaseIfNotExisting() error {
 	return nil
 }
 
-func CreateUserDatabaseIfNotExisting() error {
-	db, err := sql.Open("sqlite3", "lorcana_ardtieboy.db")
+func (dbConfig DatabaseConfig) CreateUserDatabaseIfNotExisting() error {
+	db, err := sql.Open("sqlite3", dbConfig.UserDB)
 	if err != nil {
 		return err
 	}
@@ -54,8 +102,8 @@ func CreateUserDatabaseIfNotExisting() error {
 
 // Cards
 
-func GetAllCards() ([]card.Card, error) {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) GetAllCards() ([]card.Card, error) {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +134,8 @@ func GetAllCards() ([]card.Card, error) {
 	return cards, nil
 }
 
-func GetCardById(cardID string) (card.Card, error) {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) GetCardById(cardID string) (card.Card, error) {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return card.Card{}, err
 	}
@@ -101,11 +149,13 @@ func GetCardById(cardID string) (card.Card, error) {
 
 	var c card.Card
 
-	for rows.Next() {
+	if rows.Next() {
 		err = rows.Scan(&c.CardID, &c.Artist, &c.SetID, &c.SetNum, &c.SetName, &c.Color, &c.Image, &c.Cost, &c.Inkable, &c.Name, &c.Type, &c.Rarity, &c.FlavorText, &c.CardNum, &c.BodyText)
 		if err != nil {
 			return card.Card{}, err
 		}
+	} else {
+		return card.Card{}, errors.New("no card found with the given ID")
 	}
 	if err = rows.Err(); err != nil {
 		return card.Card{}, err
@@ -114,8 +164,8 @@ func GetCardById(cardID string) (card.Card, error) {
 	return c, nil
 }
 
-func InsertCard(c card.Card) error {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) InsertCard(c card.Card) error {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return err
 	}
@@ -138,8 +188,8 @@ func InsertCard(c card.Card) error {
 
 // CardSets
 
-func GetAllCardSets() ([]card.CardSet, error) {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) GetAllCardSets() ([]card.CardSet, error) {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +220,8 @@ func GetAllCardSets() ([]card.CardSet, error) {
 	return sets, nil
 }
 
-func GetCardSetById(setID string) (card.CardSet, error) {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) GetCardSetById(setID string) (card.CardSet, error) {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return card.CardSet{}, err
 	}
@@ -198,8 +248,8 @@ func GetCardSetById(setID string) (card.CardSet, error) {
 	return c, nil
 }
 
-func InsertCardSet(cs card.CardSet) error {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) InsertCardSet(cs card.CardSet) error {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return err
 	}
@@ -222,8 +272,8 @@ func InsertCardSet(cs card.CardSet) error {
 
 // Cards in collection
 
-func GetCardInCollectionById(cardID string) (card.CardInCollection, error) {
-	db, err := sql.Open("sqlite3", "lorcana_ardtieboy.db")
+func (dbConfig DatabaseConfig) GetCardInCollectionById(cardID string) (card.CardInCollection, error) {
+	db, err := sql.Open("sqlite3", dbConfig.UserDB)
 	if err != nil {
 		return card.CardInCollection{}, err
 	}
@@ -254,8 +304,8 @@ func GetCardInCollectionById(cardID string) (card.CardInCollection, error) {
 	return c, nil
 }
 
-func UpdateCardInCollection(c card.CardInCollection) error {
-	db, err := sql.Open("sqlite3", "lorcana_ardtieboy.db")
+func (dbConfig DatabaseConfig) UpdateCardInCollection(c card.CardInCollection) error {
+	db, err := sql.Open("sqlite3", dbConfig.UserDB)
 	if err != nil {
 		return err
 	}
@@ -278,8 +328,8 @@ func UpdateCardInCollection(c card.CardInCollection) error {
 
 // CardSets
 
-func GetCardPriceById(setID string) (card.CardPrice, error) {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) GetCardPriceById(setID string) (card.CardPrice, error) {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return card.CardPrice{}, err
 	}
@@ -306,8 +356,8 @@ func GetCardPriceById(setID string) (card.CardPrice, error) {
 	return c, nil
 }
 
-func UpdateCardPrice(cp card.CardPrice) error {
-	db, err := sql.Open("sqlite3", "lorcana.db")
+func (dbConfig DatabaseConfig) UpdateCardPrice(cp card.CardPrice) error {
+	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return err
 	}

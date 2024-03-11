@@ -13,8 +13,11 @@ type HealthData struct {
 	Health string `json:"Health"`
 }
 
-func CreateRouter() *gin.Engine {
+var databaseConfig persistence.DatabaseConfig
+
+func CreateRouter(dbConfig persistence.DatabaseConfig) *gin.Engine {
 	router := gin.Default()
+	databaseConfig = dbConfig
 
 	router.GET("/health", func(c *gin.Context) {
 		c.IndentedJSON(http.StatusOK, HealthData{Health: "OK"})
@@ -34,7 +37,7 @@ func CreateRouter() *gin.Engine {
 }
 
 func GetAllCards(c *gin.Context) {
-	fetchedCards, err := persistence.GetAllCards()
+	fetchedCards, err := databaseConfig.GetAllCards()
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
 	} else {
@@ -44,9 +47,13 @@ func GetAllCards(c *gin.Context) {
 
 func GetCardById(c *gin.Context) {
 	cardId := c.Param("id")
-	fetchedCard, err := persistence.GetCardById(cardId)
+	fetchedCard, err := databaseConfig.GetCardById(cardId)
 	if err != nil {
-		c.IndentedJSON(http.StatusInternalServerError, err.Error())
+		if err.Error() == "no card found with the given ID" {
+			c.IndentedJSON(http.StatusNotFound, err.Error())
+		} else {
+			c.IndentedJSON(http.StatusInternalServerError, err.Error())
+		}
 	} else {
 		c.IndentedJSON(http.StatusOK, fetchedCard)
 	}
@@ -54,7 +61,7 @@ func GetCardById(c *gin.Context) {
 
 func GetCardInCollectionById(c *gin.Context) {
 	cardId := c.Param("id")
-	fetchedCard, err := persistence.GetCardInCollectionById(cardId)
+	fetchedCard, err := databaseConfig.GetCardInCollectionById(cardId)
 	fmt.Println("Fetched card: ", fetchedCard)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
@@ -70,7 +77,7 @@ func UpdateCardInCollection(c *gin.Context) {
 		return
 	}
 
-	err := persistence.UpdateCardInCollection(cardInCollection)
+	err := databaseConfig.UpdateCardInCollection(cardInCollection)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
 	} else {
@@ -79,7 +86,7 @@ func UpdateCardInCollection(c *gin.Context) {
 }
 
 func GetAllSets(c *gin.Context) {
-	fetchedSets, err := persistence.GetAllCardSets()
+	fetchedSets, err := databaseConfig.GetAllCardSets()
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
 	} else {
@@ -89,7 +96,7 @@ func GetAllSets(c *gin.Context) {
 
 func GetCardPriceById(c *gin.Context) {
 	setId := c.Param("id")
-	fetchedCardPrice, err := persistence.GetCardPriceById(setId)
+	fetchedCardPrice, err := databaseConfig.GetCardPriceById(setId)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
 	} else {

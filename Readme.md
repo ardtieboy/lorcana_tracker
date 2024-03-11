@@ -16,32 +16,17 @@ to initialize the database
 
 Get all cards
 
-    http 'localhost:8080/cards'
+    http 'localhost:8080/card'
 
     or
 
-    http 'localhost:8080/cards?collection=all'
+    http 'localhost:8080/card/TFC-1'
 
-Get all owned cards
+Get stats of an (owned) card
 
-    http 'localhost:8080/cards?collection=owned'
+     http 'localhost:8080/card_in_collection/TFC-1'
 
-Get all missing cards
+Update the status of an owned card
 
-    http 'localhost:8080/cards?collection=missing'
+    echo '{"card_id":"TFC-191", "owned_normal_copies": 9, "owned_foil_copies":2, "whish_list": true}' | http PUT http://localhost:8080/card_in_collection
 
-get all cards from the ROF set
-
-    http 'localhost:8080/cards?set=ROF'
-
-get all cards from the ROF and TFC set
-
-    http 'localhost:8080/cards?set=ROF&set=TFC'
-
-get all cards from all sets
-
-    http 'localhost:8080/cards'
-
-get all sets in the database
-
-    http 'localhost:8080/sets'

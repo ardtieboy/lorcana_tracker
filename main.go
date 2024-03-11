@@ -14,13 +14,14 @@ func main() {
 	// Set to true if you want to initialise the database with the card data
 
 	fmt.Println(*initDB)
+	dbConfig := persistence.DatabaseConfig{UserDB: "lorcana_ardtieboy.db", GeneralDB: "lorcana.db"}
 
 	if *initDB {
-		err := persistence.InitialiseState()
+		err := persistence.InitialiseState(dbConfig)
 		if err != nil {
 			panic(err)
 		}
 	}
-	router := controller.CreateRouter()
+	router := controller.CreateRouter(dbConfig)
 	router.Run(":8080")
 }

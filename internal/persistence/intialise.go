@@ -9,7 +9,7 @@ import (
 	"github.com/ardtieboy/lorcana_tracker/internal/card"
 )
 
-func InitialiseState() error {
+func InitialiseState(dbConfig DatabaseConfig) error {
 	fmt.Println("Fetching cards from API")
 
 	cards, err := fetchAllCardsFromApi()
@@ -27,14 +27,14 @@ func InitialiseState() error {
 	fmt.Println("Size of cards provided by the api:", len(cards))
 	fmt.Println("Size of sets provied by the api:", len(sets))
 
-	CreateGeneralDatabaseIfNotExisting()
-	CreateUserDatabaseIfNotExisting()
+	dbConfig.CreateGeneralDatabaseIfNotExisting()
+	dbConfig.CreateUserDatabaseIfNotExisting()
 
 	newlyInsertedCards := 0
 	newlyInsertedSets := 0
 
 	for _, c := range cards {
-		err := InsertCard(*c)
+		err := dbConfig.InsertCard(*c)
 		if err != nil && err.Error() == "UNIQUE constraint failed: cards.card_id" {
 			fmt.Printf("Ignoring insertion of card with ID %s because it already exists in the database.\n", c.CardID)
 		} else if err != nil {
@@ -46,7 +46,7 @@ func InitialiseState() error {
 	}
 
 	for _, set := range sets {
-		err := InsertCardSet(set)
+		err := dbConfig.InsertCardSet(set)
 		if err != nil && err.Error() == "UNIQUE constraint failed: card_sets.set_id" {
 			fmt.Printf("Ignoring insertion of set with ID %s because it already exists in the database.\n", set.SetID)
 		} else if err != nil {
