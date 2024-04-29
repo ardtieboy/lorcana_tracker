@@ -180,6 +180,15 @@ func TestUpdateAndGetCardInCollection(t *testing.T) {
 	assert.Equal(t, "AAA-1", cardInCollection.CardID)
 	assert.Equal(t, initalFoilCopies, *cardInCollection.OwnedFoilCopies)
 
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/card_in_collection", nil)
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+	var cardsInCollection []card.CardInCollection
+	json.Unmarshal(w.Body.Bytes(), &cardsInCollection)
+	//assert.Equal(t, "AAA-1", cardsInCollection[0].CardID)
+	//assert.Equal(t, initalFoilCopies, *cardsInCollection[0].OwnedFoilCopies)
+
 	initalFoilCopies--
 
 	// Put the card back to the initial state

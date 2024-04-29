@@ -272,6 +272,38 @@ func (dbConfig DatabaseConfig) InsertCardSet(cs card.CardSet) error {
 
 // Cards in collection
 
+func (dbConfig DatabaseConfig) GetAllCardInCollection() ([]card.CardInCollection, error) {
+	db, err := sql.Open("sqlite3", dbConfig.UserDB)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT card_id, owned_normal_copies, owned_foil_copies, whishlist from cards_in_collection")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cardsInCollection []card.CardInCollection
+
+	for rows.Next() {
+		var cardInCollection card.CardInCollection
+
+		err = rows.Scan(&cardInCollection.CardID, &cardInCollection.OwnedNormalCopies, &cardInCollection.OwnedFoilCopies, &cardInCollection.WhishList)
+		if err != nil {
+			return nil, err
+		}
+
+		cardsInCollection = append(cardsInCollection, cardInCollection)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return cardsInCollection, nil
+}
+
 func (dbConfig DatabaseConfig) GetCardInCollectionById(cardID string) (card.CardInCollection, error) {
 	db, err := sql.Open("sqlite3", dbConfig.UserDB)
 	if err != nil {

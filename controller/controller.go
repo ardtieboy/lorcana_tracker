@@ -26,6 +26,7 @@ func CreateRouter(dbConfig persistence.DatabaseConfig) *gin.Engine {
 	router.GET("/card", GetAllCards)
 	router.GET("/card/:id", GetCardById)
 
+	router.GET("/card_in_collection", GetAllCardsInCollectionById)
 	router.GET("/card_in_collection/:id", GetCardInCollectionById)
 	router.PUT("/card_in_collection", UpdateCardInCollection)
 
@@ -67,6 +68,16 @@ func GetCardInCollectionById(c *gin.Context) {
 		c.IndentedJSON(http.StatusInternalServerError, err.Error())
 	} else {
 		c.IndentedJSON(http.StatusOK, fetchedCard)
+	}
+}
+
+func GetAllCardsInCollectionById(c *gin.Context) {
+	fetchedCards, err := databaseConfig.GetAllCardInCollection()
+	fmt.Println("Fetched cards: ", fetchedCards)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, err.Error())
+	} else {
+		c.IndentedJSON(http.StatusOK, fetchedCards)
 	}
 }
 
