@@ -1,43 +1,27 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"fmt"
-	"io"
-	"net/http"
 
-	"github.com/ardtieboy/lorcana_tracker/internal/card"
+	"github.com/ardtieboy/lorcana_tracker/controller"
+	"github.com/ardtieboy/lorcana_tracker/internal/persistence"
 )
 
 func main() {
-	url := "https://api.lorcana-api.com/cards/all"
+	initDB := flag.Bool("initDB", false, "Set to true if you want to initialise the database with the card data")
+	flag.Parse()
+	// Set to true if you want to initialise the database with the card data
 
-	resp, err := http.Get(url)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	defer resp.Body.Close()
+	fmt.Println(*initDB)
+	dbConfig := persistence.DatabaseConfig{UserDB: "lorcana_ardtieboy.db", GeneralDB: "lorcana.db"}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	var cards []card.Card
-	err = json.Unmarshal(body, &cards)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	for _, card := range cards {
-		cardJSON, err := json.MarshalIndent(card, "", "  ")
+	if *initDB {
+		err := persistence.InitialiseState(dbConfig)
 		if err != nil {
-			fmt.Println("Error:", err)
-			return
+			panic(err)
 		}
-		fmt.Println(string(cardJSON))
 	}
+	router := controller.CreateRouter(dbConfig)
+	router.Run(":8080")
 }
