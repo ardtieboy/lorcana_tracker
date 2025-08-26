@@ -1,0 +1,231 @@
+basePath: /
+definitions:
+  card.Card:
+    properties:
+      artist:
+        type: string
+      body_text:
+        type: string
+      card_num:
+        type: integer
+      color:
+        type: string
+      cost:
+        type: integer
+      flavor_text:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      inkable:
+        type: boolean
+      name:
+        type: string
+      rarity:
+        type: string
+      set_id:
+        type: string
+      set_name:
+        type: string
+      set_num:
+        type: integer
+      type:
+        type: string
+    type: object
+  card.InCollection:
+    properties:
+      card_id:
+        type: string
+      owned_foil_copies:
+        type: integer
+      owned_normal_copies:
+        type: integer
+      wish_list:
+        type: boolean
+    required:
+    - card_id
+    - owned_foil_copies
+    - owned_normal_copies
+    - wish_list
+    type: object
+  card.Price:
+    properties:
+      card_id:
+        type: string
+      market_price_in_euro:
+        type: integer
+      market_price_link:
+        type: string
+    required:
+    - card_id
+    type: object
+  card.Set:
+    properties:
+      set_id:
+        type: string
+      set_name:
+        type: string
+      set_num:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server for a Lorcana tracker.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Lorcana Tracker API
+  version: "1.0"
+paths:
+  /card:
+    get:
+      description: Get all cards
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/card.Card'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all cards
+  /card/{id}:
+    get:
+      description: Get a card by ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/card.Card'
+        "404":
+          description: no card found with the given ID
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get a card by ID
+  /card_in_collection:
+    get:
+      description: Get all cards in collection
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/card.InCollection'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all cards in collection
+    put:
+      consumes:
+      - application/json
+      description: Update a card in collection
+      parameters:
+      - description: Card in collection
+        in: body
+        name: cardInCollection
+        required: true
+        schema:
+          $ref: '#/definitions/card.InCollection'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/card.InCollection'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update a card in collection
+  /card_in_collection/{id}:
+    get:
+      description: Get a card in collection by ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/card.InCollection'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get a card in collection by ID
+  /card_price/{id}:
+    get:
+      description: Get a card price by ID
+      parameters:
+      - description: Card ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/card.Price'
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get a card price by ID
+  /set:
+    get:
+      description: Get all sets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/card.Set'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all sets
+swagger: "2.0"

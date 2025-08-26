@@ -27,8 +27,14 @@ func InitialiseState(dbConfig DatabaseConfig) error {
 	fmt.Println("Size of cards provided by the api:", len(cards))
 	fmt.Println("Size of sets provied by the api:", len(sets))
 
-	dbConfig.CreateGeneralDatabaseIfNotExisting()
-	dbConfig.CreateUserDatabaseIfNotExisting()
+	err = dbConfig.CreateGeneralDatabaseIfNotExisting()
+	if err != nil {
+		return err
+	}
+	err = dbConfig.CreateUserDatabaseIfNotExisting()
+	if err != nil {
+		return err
+	}
 
 	newlyInsertedCards := 0
 	newlyInsertedSets := 0
@@ -66,14 +72,14 @@ func InitialiseState(dbConfig DatabaseConfig) error {
 	return nil
 }
 
-func extractSetsFromCards(cards []*card.Card) ([]card.CardSet, error) {
-	setIDs := make(map[string]card.CardSet)
+func extractSetsFromCards(cards []*card.Card) ([]card.Set, error) {
+	setIDs := make(map[string]card.Set)
 
 	for _, c := range cards {
-		setIDs[c.SetID] = card.CardSet{SetID: c.SetID, SetNum: c.SetNum, SetName: c.SetName}
+		setIDs[c.SetID] = card.Set{SetID: c.SetID, SetNum: c.SetNum, SetName: c.SetName}
 	}
 
-	var sets []card.CardSet
+	var sets []card.Set
 	for _, value := range setIDs {
 		sets = append(sets, value)
 	}

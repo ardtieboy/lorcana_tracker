@@ -188,7 +188,7 @@ func (dbConfig DatabaseConfig) InsertCard(c card.Card) error {
 
 // CardSets
 
-func (dbConfig DatabaseConfig) GetAllCardSets() ([]card.CardSet, error) {
+func (dbConfig DatabaseConfig) GetAllCardSets() ([]card.Set, error) {
 	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return nil, err
@@ -201,10 +201,10 @@ func (dbConfig DatabaseConfig) GetAllCardSets() ([]card.CardSet, error) {
 	}
 	defer rows.Close()
 
-	var sets []card.CardSet
+	var sets []card.Set
 
 	for rows.Next() {
-		var set card.CardSet
+		var set card.Set
 
 		err = rows.Scan(&set.SetID, &set.SetNum, &set.SetName)
 		if err != nil {
@@ -220,35 +220,35 @@ func (dbConfig DatabaseConfig) GetAllCardSets() ([]card.CardSet, error) {
 	return sets, nil
 }
 
-func (dbConfig DatabaseConfig) GetCardSetById(setID string) (card.CardSet, error) {
+func (dbConfig DatabaseConfig) GetCardSetById(setID string) (card.Set, error) {
 	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
-		return card.CardSet{}, err
+		return card.Set{}, err
 	}
 	defer db.Close()
 
 	rows, err := db.Query("SELECT set_id, set_num, set_name from card_sets WHERE set_id = ?", setID)
 	if err != nil {
-		return card.CardSet{}, err
+		return card.Set{}, err
 	}
 	defer rows.Close()
 
-	var c card.CardSet
+	var c card.Set
 
 	for rows.Next() {
 		err = rows.Scan(&c.SetID, &c.SetNum, &c.SetName)
 		if err != nil {
-			return card.CardSet{}, err
+			return card.Set{}, err
 		}
 	}
 	if err = rows.Err(); err != nil {
-		return card.CardSet{}, err
+		return card.Set{}, err
 	}
 
 	return c, nil
 }
 
-func (dbConfig DatabaseConfig) InsertCardSet(cs card.CardSet) error {
+func (dbConfig DatabaseConfig) InsertCardSet(cs card.Set) error {
 	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return err
@@ -272,7 +272,7 @@ func (dbConfig DatabaseConfig) InsertCardSet(cs card.CardSet) error {
 
 // Cards in collection
 
-func (dbConfig DatabaseConfig) GetAllCardInCollection() ([]card.CardInCollection, error) {
+func (dbConfig DatabaseConfig) GetAllCardInCollection() ([]card.InCollection, error) {
 	db, err := sql.Open("sqlite3", dbConfig.UserDB)
 	if err != nil {
 		return nil, err
@@ -285,12 +285,12 @@ func (dbConfig DatabaseConfig) GetAllCardInCollection() ([]card.CardInCollection
 	}
 	defer rows.Close()
 
-	var cardsInCollection []card.CardInCollection
+	var cardsInCollection []card.InCollection
 
 	for rows.Next() {
-		var cardInCollection card.CardInCollection
+		var cardInCollection card.InCollection
 
-		err = rows.Scan(&cardInCollection.CardID, &cardInCollection.OwnedNormalCopies, &cardInCollection.OwnedFoilCopies, &cardInCollection.WhishList)
+		err = rows.Scan(&cardInCollection.CardID, &cardInCollection.OwnedNormalCopies, &cardInCollection.OwnedFoilCopies, &cardInCollection.WishList)
 		if err != nil {
 			return nil, err
 		}
@@ -304,39 +304,39 @@ func (dbConfig DatabaseConfig) GetAllCardInCollection() ([]card.CardInCollection
 	return cardsInCollection, nil
 }
 
-func (dbConfig DatabaseConfig) GetCardInCollectionById(cardID string) (card.CardInCollection, error) {
+func (dbConfig DatabaseConfig) GetCardInCollectionById(cardID string) (card.InCollection, error) {
 	db, err := sql.Open("sqlite3", dbConfig.UserDB)
 	if err != nil {
-		return card.CardInCollection{}, err
+		return card.InCollection{}, err
 	}
 	defer db.Close()
 
 	rows, err := db.Query("SELECT card_id, owned_normal_copies, owned_foil_copies, whishlist from cards_in_collection WHERE card_id = ?", cardID)
 	if err != nil {
-		return card.CardInCollection{}, err
+		return card.InCollection{}, err
 	}
 	defer rows.Close()
 
-	var c card.CardInCollection
+	var c card.InCollection
 
 	if rows.Next() {
-		err = rows.Scan(&c.CardID, &c.OwnedNormalCopies, &c.OwnedFoilCopies, &c.WhishList)
+		err = rows.Scan(&c.CardID, &c.OwnedNormalCopies, &c.OwnedFoilCopies, &c.WishList)
 		if err != nil {
-			return card.CardInCollection{}, err
+			return card.InCollection{}, err
 		}
 	} else {
 		ownedCopies := 0
 		whishList := false
-		return card.CardInCollection{CardID: cardID, OwnedNormalCopies: &ownedCopies, OwnedFoilCopies: &ownedCopies, WhishList: &whishList}, nil
+		return card.InCollection{CardID: cardID, OwnedNormalCopies: &ownedCopies, OwnedFoilCopies: &ownedCopies, WishList: &whishList}, nil
 	}
 
 	if err = rows.Err(); err != nil {
-		return card.CardInCollection{}, err
+		return card.InCollection{}, err
 	}
 	return c, nil
 }
 
-func (dbConfig DatabaseConfig) UpdateCardInCollection(c card.CardInCollection) error {
+func (dbConfig DatabaseConfig) UpdateCardInCollection(c card.InCollection) error {
 	db, err := sql.Open("sqlite3", dbConfig.UserDB)
 	if err != nil {
 		return err
@@ -349,7 +349,7 @@ func (dbConfig DatabaseConfig) UpdateCardInCollection(c card.CardInCollection) e
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(c.CardID, c.OwnedNormalCopies, c.OwnedFoilCopies, c.WhishList)
+	_, err = stmt.Exec(c.CardID, c.OwnedNormalCopies, c.OwnedFoilCopies, c.WishList)
 	if err != nil {
 		return err
 	}
@@ -360,35 +360,35 @@ func (dbConfig DatabaseConfig) UpdateCardInCollection(c card.CardInCollection) e
 
 // CardSets
 
-func (dbConfig DatabaseConfig) GetCardPriceById(setID string) (card.CardPrice, error) {
+func (dbConfig DatabaseConfig) GetCardPriceById(setID string) (card.Price, error) {
 	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
-		return card.CardPrice{}, err
+		return card.Price{}, err
 	}
 	defer db.Close()
 
 	rows, err := db.Query("SELECT set_id, market_price_in_euro, market_price_link from card_prices WHERE set_id = ?", setID)
 	if err != nil {
-		return card.CardPrice{}, err
+		return card.Price{}, err
 	}
 	defer rows.Close()
 
-	var c card.CardPrice
+	var c card.Price
 
 	for rows.Next() {
 		err = rows.Scan(&c.CardID, &c.MarketPriceInEuro, &c.MarketPriceLink)
 		if err != nil {
-			return card.CardPrice{}, err
+			return card.Price{}, err
 		}
 	}
 	if err = rows.Err(); err != nil {
-		return card.CardPrice{}, err
+		return card.Price{}, err
 	}
 
 	return c, nil
 }
 
-func (dbConfig DatabaseConfig) UpdateCardPrice(cp card.CardPrice) error {
+func (dbConfig DatabaseConfig) UpdateCardPrice(cp card.Price) error {
 	db, err := sql.Open("sqlite3", dbConfig.GeneralDB)
 	if err != nil {
 		return err

@@ -33,7 +33,7 @@ func InitialiseTestState(dbConfig persistence.DatabaseConfig) error {
 		Rarity:  "Dummy Rarity",
 	}}
 
-	sets := []card.CardSet{{SetID: "AAA", SetNum: 1, SetName: "Dummy Set Name"}}
+	sets := []card.Set{{SetID: "AAA", SetNum: 1, SetName: "Dummy Set Name"}}
 
 	fmt.Println("Size of cards provided by the api:", len(cards))
 	fmt.Println("Size of sets provied by the api:", len(sets))
@@ -150,7 +150,7 @@ func TestUpdateAndGetCardInCollection(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/card_in_collection/AAA-1", nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
-	var initialCardInCollection card.CardInCollection
+	var initialCardInCollection card.InCollection
 	json.Unmarshal(w.Body.Bytes(), &initialCardInCollection)
 	assert.Equal(t, "AAA-1", initialCardInCollection.CardID)
 
@@ -175,7 +175,7 @@ func TestUpdateAndGetCardInCollection(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/card_in_collection/AAA-1", nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
-	var cardInCollection card.CardInCollection
+	var cardInCollection card.InCollection
 	json.Unmarshal(w.Body.Bytes(), &cardInCollection)
 	assert.Equal(t, "AAA-1", cardInCollection.CardID)
 	assert.Equal(t, initalFoilCopies, *cardInCollection.OwnedFoilCopies)
@@ -184,7 +184,7 @@ func TestUpdateAndGetCardInCollection(t *testing.T) {
 	req, _ = http.NewRequest("GET", "/card_in_collection", nil)
 	router.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
-	var cardsInCollection []card.CardInCollection
+	var cardsInCollection []card.InCollection
 	json.Unmarshal(w.Body.Bytes(), &cardsInCollection)
 	//assert.Equal(t, "AAA-1", cardsInCollection[0].CardID)
 	//assert.Equal(t, initalFoilCopies, *cardsInCollection[0].OwnedFoilCopies)
