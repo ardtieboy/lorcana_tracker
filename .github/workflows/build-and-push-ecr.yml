@@ -1,0 +1,80 @@
+name: Build, Push and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - deploy
+
+env:
+  AWS_REGION: eu-west-3
+  ECR_REPOSITORY: ardtieboy/lorcana_tracker
+  # Use the GitHub SHA as the image tag
+  IMAGE_TAG: ${{ github.sha }}
+  APP_RUNNER_SERVICE_NAME: lorcana-tracker
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      blaat: ${{ steps.set-output-step.outputs.blaat }}
+      BLUB: "blub"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      with:
+        mask-password: false
+
+    - name: Build, tag, and push image to Amazon ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Echo ECR Registry
+      run: echo "ECR Registry is ${{ steps.login-ecr.outputs.registry }}"
+
+    - name: Set job output explicitly
+      id: set-output-step
+      run: echo "blaat=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_OUTPUT
+
+  deploy-to-app-runner:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Echo ECR Registry bis
+      run: echo "ECR Registry is ${{ needs.build-and-push.outputs.blaat  }} and ${{ needs.build-and-push.outputs.BLUB }} and ${{ secrets.AWS_ECR_REGISTRY }}"
+
+    - name: Deploy to App Runner
+      uses: awslabs/amazon-app-runner-deploy@main
+      with:
+        service: ${{ env.APP_RUNNER_SERVICE_NAME }}
+        image: ${{ secrets.AWS_ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        access-role-arn: ${{ secrets.AWS_APP_RUNNER_ACCESS_ROLE_ARN }}
+        port: '8080'
+        region: ${{ env.AWS_REGION }}
+
