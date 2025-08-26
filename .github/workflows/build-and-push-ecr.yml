@@ -75,4 +75,5 @@ jobs:
         service: ${{ env.APP_RUNNER_SERVICE_NAME }}
         image: ${{ secrets.AWS_ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         access-role-arn: ${{ secrets.AWS_APP_RUNNER_ACCESS_ROLE_ARN }}
+        port: '8080'
 
