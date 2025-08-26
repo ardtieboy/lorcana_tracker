@@ -46,7 +46,7 @@ jobs:
       run: echo "ECR Registry is ${{ steps.login-ecr.outputs.registry }}"
 
     outputs:
-      ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      blaat: ${{ steps.login-ecr.outputs.registry }}
       BLUB: "blub"
 
   deploy-to-app-runner:
@@ -65,11 +65,11 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Echo ECR Registry bis
-      run: echo "ECR Registry is ${{ needs.build-and-push.outputs.ECR_REGISTRY  }} and ${{ needs.build-and-push.outputs.BLUB }}"
+      run: echo "ECR Registry is ${{ needs.build-and-push.outputs.blaat  }} and ${{ needs.build-and-push.outputs.BLUB }}"
 
     - name: Deploy to App Runner
       uses: awslabs/amazon-app-runner-deploy@main
       with:
         service: ${{ env.APP_RUNNER_SERVICE_NAME }}
-        image: ${{ needs.build-and-push.outputs.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        image: ${{ needs.build-and-push.outputs.blaat }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         access-role-arn: ${{ secrets.AWS_APP_RUNNER_ACCESS_ROLE_ARN }}
