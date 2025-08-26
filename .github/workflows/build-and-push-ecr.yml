@@ -16,6 +16,8 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
 
     steps:
     - name: Checkout code
@@ -58,5 +60,5 @@ jobs:
       uses: awslabs/amazon-app-runner-deploy@main
       with:
         service: ${{ env.APP_RUNNER_SERVICE_NAME }}
-        image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        image: ${{ needs.build-and-push.outputs.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
         access-role-arn: ${{ secrets.AWS_APP_RUNNER_ACCESS_ROLE_ARN }}
