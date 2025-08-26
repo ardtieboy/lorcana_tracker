@@ -17,7 +17,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
-      blaat: ${{ steps.login-ecr.outputs.registry }}
+      blaat: ${{ steps.set-output-step.outputs.blaat }}
       BLUB: "blub"
 
     steps:
@@ -47,7 +47,9 @@ jobs:
     - name: Echo ECR Registry
       run: echo "ECR Registry is ${{ steps.login-ecr.outputs.registry }}"
 
-
+    - name: Set job output explicitly
+      id: set-output-step
+      run: echo "blaat=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_OUTPUT
 
   deploy-to-app-runner:
     runs-on: ubuntu-latest
