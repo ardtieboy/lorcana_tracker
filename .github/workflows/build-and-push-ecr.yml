@@ -55,7 +55,7 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Deploy to App Runner
-      uses: awslabs/amazon-app-runner-deploy@v1
+      uses: awslabs/amazon-app-runner-deploy@main
       with:
         service: ${{ env.APP_RUNNER_SERVICE_NAME }}
         image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
